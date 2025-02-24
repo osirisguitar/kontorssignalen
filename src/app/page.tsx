@@ -1,13 +1,31 @@
 'use client'
 import { useState } from 'react'
 
-export default function Home() {
-  const [green, setGreen] = useState(false)
-  const [red, setRed] = useState(false)
-  const [yellow, setYellow] = useState(false)
+type LedStates = Record<string, boolean>
 
-  const setLed = async (ledName: string, state: boolean) => {
-    await fetch(`/api/leds?led=${ledName}&state=${state ? 'on' : 'off'}`)
+export default function Home() {
+  const [leds, setLeds] = useState<LedStates>({
+    red: false,
+    yellow: false,
+    green: false,
+  })
+
+  const updateLeds = async (red: boolean, yellow: boolean, green: boolean) => {
+    const updatedLeds = {
+      red,
+      yellow,
+      green,
+    }
+    setLeds(updatedLeds)
+
+    sendLedStates(updatedLeds)
+  }
+
+  const sendLedStates = async (ledStates: LedStates) => {
+    await fetch(`/api/leds`, {
+      method: 'POST',
+      body: JSON.stringify(ledStates),
+    })
   }
 
   return (
@@ -22,43 +40,67 @@ export default function Home() {
         <div className='w-[300px] h-[450px] flex flex-col gap-8 items-center m-auto bg-amber-900 p-10'>
           <div
             className={
-              (red ? 'bg-red-500 shadow-lg shadow-red-500' : 'bg-red-700') +
+              (leds.red
+                ? 'bg-red-500 shadow-lg shadow-red-500'
+                : 'bg-red-700') +
               ' flex flex-col items-center justify-center h-24 w-[90%] text-xl font-bold cursor-pointer'
             }
             onClick={() => {
-              setRed(!red)
-              setLed('red', !red)
+              if (!leds.red) {
+                updateLeds(true, false, false)
+              } else {
+                updateLeds(false, false, false)
+              }
             }}
           >
             UPPTAGEN
           </div>
           <div
             className={
-              (yellow
+              (leds.yellow
                 ? 'bg-yellow-200 shadow-lg shadow-yellow-200'
                 : 'bg-yellow-400') +
               ' flex flex-col items-center justify-center h-24 w-[90%] text-xl font-bold cursor-pointer'
             }
             onClick={() => {
-              setYellow(!yellow)
-              setLed('yellow', !yellow)
+              if (!leds.yellow) {
+                updateLeds(false, true, false)
+              } else {
+                updateLeds(false, false, false)
+              }
             }}
           >
             FOKUSERAR
           </div>
           <div
             className={
-              (green
+              (leds.green
                 ? 'bg-green-400 shadow-lg shadow-green-400'
                 : 'bg-green-700') +
               ' flex flex-col items-center justify-center h-24 w-[90%] text-xl font-bold cursor-pointer'
             }
             onClick={() => {
-              setGreen(!green)
-              setLed('green', !green)
+              if (!leds.green) {
+                updateLeds(false, false, true)
+              } else {
+                updateLeds(false, false, false)
+              }
             }}
           >
             VÄLKOMMEN IN
+          </div>
+          <div
+            className={
+              (!leds.red && !leds.yellow && !leds.green
+                ? 'bg-gray-400 shadow-lg shadow-gray-400'
+                : 'bg-gray-700') +
+              ' flex flex-col items-center justify-center h-24 w-[90%] text-xl font-bold cursor-pointer'
+            }
+            onClick={() => {
+              updateLeds(false, false, false)
+            }}
+          >
+            AV
           </div>
         </div>
       </main>
