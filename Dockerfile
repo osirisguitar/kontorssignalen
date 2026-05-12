@@ -1,7 +1,7 @@
 # This is a slimmed-down version of the Dockerfile used in the Next.js examples.
 # -> https://github.com/vercel/next.js/tree/canary/examples/with-docker
 
-FROM node:20 AS builder
+FROM node:26 AS builder
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -16,7 +16,7 @@ RUN npm run build
 RUN npm ci --omit dev
 
 # Production image, copy all the files and run next.
-FROM node:20-alpine AS runner
+FROM node:26-alpine AS runner
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat
