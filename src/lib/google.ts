@@ -141,7 +141,20 @@ type CalendarEvent = {
   eventType?: string
   start?: { dateTime?: string }
   end?: { dateTime?: string }
+  transparency?: string
+  organizer?: { self?: boolean }
   attendees?: { self?: boolean; responseStatus?: string }[]
+}
+
+// Accepted invitations, plus events you created yourself (with or without
+// guests). Events marked "Free" in Google never count.
+const isBusyMeeting = (e: CalendarEvent) => {
+  if (e.status === 'cancelled' || e.transparency === 'transparent') return false
+  if ((e.eventType ?? 'default') !== 'default') return false
+  if (!e.start?.dateTime || !e.end?.dateTime) return false // all-day
+  const self = e.attendees?.find((a) => a.self)
+  if (self) return self.responseStatus === 'accepted'
+  return Boolean(e.organizer?.self)
 }
 
 const fetchAcceptedMeetings = async (token: string): Promise<Meeting[]> => {
@@ -160,21 +173,12 @@ const fetchAcceptedMeetings = async (token: string): Promise<Meeting[]> => {
   if (!res.ok) throw new Error(`Calendar API: HTTP ${res.status}`)
   const { items = [] } = (await res.json()) as { items?: CalendarEvent[] }
 
-  return items
-    .filter(
-      (e) =>
-        e.status !== 'cancelled' &&
-        (e.eventType ?? 'default') === 'default' &&
-        e.start?.dateTime && // skip all-day events
-        e.end?.dateTime &&
-        e.attendees?.some((a) => a.self && a.responseStatus === 'accepted'),
-    )
-    .map((e) => ({
-      id: e.id,
-      summary: e.summary ?? '',
-      start: Date.parse(e.start!.dateTime!),
-      end: Date.parse(e.end!.dateTime!),
-    }))
+  return items.filter(isBusyMeeting).map((e) => ({
+    id: e.id,
+    summary: e.summary ?? '',
+    start: Date.parse(e.start!.dateTime!),
+    end: Date.parse(e.end!.dateTime!),
+  }))
 }
 
 export const syncCalendar = async () => {

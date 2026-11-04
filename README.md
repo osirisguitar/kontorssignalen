@@ -2,7 +2,7 @@
 
 ## Google Calendar integration
 
-When a calendar is connected, the status switches to **UPPTAGEN** during every meeting you have **accepted**. Personal events with no guests, all-day events, focus time, out-of-office and working location events don't count. When the meeting ends, the status goes back to what it was before. If you change status by hand during a meeting, your choice applies until that meeting ends.
+When a calendar is connected, the status switches to **UPPTAGEN** during every meeting you have **accepted** and every event you created yourself (with or without guests). Events marked "Free", all-day events, focus time, out-of-office and working location events don't count. When the meeting ends, the status goes back to what it was before. If you change status by hand during a meeting, your choice applies until that meeting ends.
 
 The server reads the calendar every 2 minutes and checks the meeting times every 15 seconds. It keeps the state and the Google refresh token in `$DATA_DIR/state.json` (default `./data`, `/app/data` in Docker).
 
